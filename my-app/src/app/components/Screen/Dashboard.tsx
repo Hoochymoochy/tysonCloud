@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useState } from "react";
+import { SidebarButton } from "../ui/Dashboard/Sidebar-Buttons";
 
 export default function Dashboard() {
   const [side, setSide] = useState(false);
@@ -52,72 +53,18 @@ export default function Dashboard() {
               />
               TysonCloud@gmail.com
             </h2>
-            <div>
-              <button className="hover:bg-lslate hover:bg-opacity-80  border-1 rounded-md pr-44 pl-10 py-2 my-1 ml-2 ease-in-out duration-300 flex text-xl">
-                <Image
-                  src="/images/home.png"
-                  alt="Close Sidebar"
-                  width={25}
-                  height={25}
-                  className="justify-center mr-4"
-                />
-                Dashboard
-              </button>
-              <button className="hover:bg-lslate hover:bg-opacity-80  border-1 rounded-md pr-44 pl-10 py-2 my-1 ml-2 ease-in-out duration-300 flex text-xl">
-                <Image
-                  src="/images/data-copy.png"
-                  alt="Close Sidebar"
-                  width={30}
-                  height={30}
-                  className="justify-center mr-4"
-                />
-                Projects
-              </button>
-              <button className="hover:bg-lslate hover:bg-opacity-80  border-1 rounded-md pr-44 pl-10 py-2 my-1 ml-2 ease-in-out duration-300 flex text-xl">
-                <Image
-                  src="/images/release.png"
-                  alt="Close Sidebar"
-                  width={30}
-                  height={30}
-                  className="justify-center mr-4"
-                />
-                Development
-              </button>
-              <button className="hover:bg-lslate hover:bg-opacity-80  border-1 rounded-md pr-44 pl-10 py-2 my-1 ml-2 ease-in-out duration-300 flex text-xl">
-                <Image
-                  src="/images/gear.png"
-                  alt="Close Sidebar"
-                  width={30}
-                  height={30}
-                  className="justify-center mr-4"
-                />
-                Settings
-              </button>
+            <div className="w-[90%] mx-auto mt-4">
+              <SidebarButton text="Dashboard" image="home" size={25}></SidebarButton>
+              <SidebarButton text="Projects" image="data-copy" size={30}></SidebarButton>
+              <SidebarButton text="Development" image="release" size={30}></SidebarButton>
+              <SidebarButton text="Settings" image="gear" size={30}></SidebarButton>
             </div>
-            <div>
+            <div className="bottom-32 absolute w-[90%] mx-auto mt-4">
               <div className="p-4">
                 <p>Actions</p>
               </div>
-              <button className="hover:bg-lslate hover:bg-opacity-80  border-1 rounded-md pr-30 pl-10 py-2 my-1 ml-2 ease-in-out duration-300 flex text-xl">
-                <Image
-                  src="/images/plus.png"
-                  alt="Close Sidebar"
-                  width={30}
-                  height={30}
-                  className="justify-center mr-4"
-                />
-                Add Profile
-              </button>
-              <button className="hover:bg-lslate hover:bg-opacity-80  border-1 rounded-md pr-44 pl-10 py-2 my-1 ml-2 ease-in-out duration-300 flex text-xl">
-                <Image
-                  src="/images/logout.png"
-                  alt="Close Sidebar"
-                  width={25}
-                  height={25}
-                  className="justify-center mr-4"
-                />
-                Projects
-              </button>
+              <SidebarButton text="Add Profile" image="plus" size={25}></SidebarButton>
+              <SidebarButton text="Log Out" image="logout" size={25}></SidebarButton>
             </div>
           </>
         )}
