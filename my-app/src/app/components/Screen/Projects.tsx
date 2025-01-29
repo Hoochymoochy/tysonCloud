@@ -22,6 +22,7 @@ export default function Dashboard() {
 
   const handleUpload = () => {
     if (file) {
+      //AKA this bullshit
       // Handle the file upload logic
       const formData = new FormData();
       formData.append("file", file);
