@@ -2,14 +2,30 @@
 import Image from "next/image";
 import { useState } from "react";
 import { SidebarButton } from "../ui/Dashboard/Sidebar-Buttons";
+import JSZip from "jszip";
+import { EditorView } from "@codemirror/view";
+import CodeMirror from "@uiw/react-codemirror";
+import { javascript } from "@codemirror/lang-javascript";
+
+interface FileTreeNode {
+  name: string;
+  isFolder: boolean;
+  children?: FileTreeNode[];
+}
 
 export default function Dashboard() {
   const [file, setFile] = useState(null);
   const [error, setError] = useState("");
+  const [check, setCheck] = useState(false);
+  const [fileTree, setFileTree] = useState<FileTreeNode[]>([]);
+  const [code, setCode] = useState("// Start coding...");
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
+    new Set()
+  );
 
   const handleFileChange = (e: any) => {
     const uploadedFile = e.target.files[0];
-    console.log(uploadedFile.type)
+    console.log(uploadedFile.type);
 
     if (uploadedFile && uploadedFile.type === "application/x-zip-compressed") {
       setFile(uploadedFile);
@@ -20,19 +36,105 @@ export default function Dashboard() {
     }
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (file) {
-      //AKA this bullshit
-      // Handle the file upload logic
-      const formData = new FormData();
-      formData.append("file", file);
+      const zip = new JSZip();
 
-      // Example: You can send formData to the server here using fetch or Axios
-      console.log("Uploading file:");
-
-      alert("File uploaded successfully!");
+      const contents = await zip.loadAsync(file);
+      console.log(contents)
+      const newFileTree = buildFileTree(contents.files);
+      setFileTree(newFileTree);
+      setCheck(true);
     }
   };
+
+  // Build the tree structure from the extracted files
+  const buildFileTree = (
+    files: Record<string, JSZip.JSZipObject>
+  ): FileTreeNode[] => {
+    const tree: FileTreeNode[] = [];
+
+    Object.keys(files).forEach((filename) => {
+      const pathParts = filename.split("/");
+      let currentNode = tree;
+
+      pathParts.forEach((part, idx) => {
+        const isLast = idx === pathParts.length - 1;
+        const existingNode = currentNode.find((node) => node.name === part);
+
+        if (existingNode) {
+          currentNode = existingNode.children || [];
+        } else {
+          const newNode: FileTreeNode = {
+            name: part,
+            isFolder: !isLast,
+            children: isLast ? undefined : [],
+          };
+          currentNode.push(newNode);
+          currentNode = newNode.children || [];
+        }
+      });
+    });
+
+    return tree;
+  };
+
+  // Toggle the expanded state of a folder
+  const toggleFolder = (folderName: string) => {
+    const newExpandedFolders = new Set(expandedFolders);
+    if (expandedFolders.has(folderName)) {
+      newExpandedFolders.delete(folderName);
+    } else {
+      newExpandedFolders.add(folderName);
+    }
+    setExpandedFolders(newExpandedFolders);
+  };
+
+  // Render file tree recursively
+  const handleFileClick = async (filePath: string) => {
+    if (!file || !filePath) return;
+  
+    const zip = new JSZip();
+    const contents = await zip.loadAsync(file);
+    const fileData = contents.files[filePath];
+  
+    if (fileData && !fileData.dir) {
+      const content = await fileData.async("text");
+      setCode(content);
+    }
+  };
+  
+  // Modify renderTree function to handle file clicks
+  const renderTree = (nodes: FileTreeNode[], parentPath = "") => {
+    return (
+      <ul>
+        {nodes.map((node, idx) => {
+          const currentPath = `${parentPath}/${node.name}`;
+          return (
+            <li key={idx}>
+              {node.isFolder ? (
+                <span onClick={() => toggleFolder(currentPath)}>
+                  {expandedFolders.has(currentPath) ? "[-]" : "[+]"} {node.name}
+                </span>
+              ) : (
+                <span className="cursor-pointer text-blue-500" onClick={() => handleFileClick(currentPath)}>
+                  {node.name}
+                </span>
+              )}
+              {node.isFolder &&
+                expandedFolders.has(currentPath) &&
+                node.children && (
+                  <div style={{ marginLeft: "20px" }}>
+                    {renderTree(node.children, currentPath)}
+                  </div>
+                )}
+            </li>
+          );
+        })}
+      </ul>
+    );
+  };
+  
 
   return (
     <div className="bg-lslate flex min-h-screen relative">
@@ -171,11 +273,31 @@ export default function Dashboard() {
 
           <div className="bg-lwhite w-1/5 min-h-screen p-4">
             <div className="text-lorange text-3xl text-center">File Tree</div>
+            {check && (
+              <ul>
+                <ul>
+                  {fileTree.length > 0 && (
+                    <div>
+                      <h1 className="text-4xl border-1">
+                        {renderTree(fileTree)}
+                      </h1>
+                    </div>
+                  )}
+                </ul>
+              </ul>
+            )}
           </div>
 
-          <div className="bg-slate-300 w-1/3 min-h-screen flex justify-center items-center flex-col">
-            <div className="text-4xl text-lorange mb-2">Code Editor</div>
-            <div className="bg-lwhite min-h-screen w-full p-4"></div>
+          <div className="bg-slate-300 w-1/3 min-h-screen flex flex-col">
+            <div className="text-4xl text-lorange p-4">Code Editor</div>
+            <div className="bg-lwhite flex-grow p-4 flex">
+              <CodeMirror
+                className="h-full w-full flex-grow"
+                value={code}
+                extensions={[javascript(), EditorView.lineWrapping]}
+                onChange={(value) => setCode(value)}
+              />
+            </div>
           </div>
         </div>
       </div>
